@@ -43,7 +43,6 @@ impl Vec {
             self.memory.get(pos)
         } else {
             enter_panic_mode();
-            0
         }
     }
     pub fn pop(&mut self) {

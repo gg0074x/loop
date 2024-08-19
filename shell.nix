@@ -15,7 +15,7 @@ pkgs.mkShell
     rustup default nightly
     rustup target add i686-unknown-linux-gnu
     cowsay "Building loop!"
-    make
+    make || exit 1;
     cowsay "Running loop!"
     qemu-system-i386 -drive format=raw,file=build/loop.bin
   '';

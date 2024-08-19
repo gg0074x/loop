@@ -4,6 +4,8 @@ const VGA: *mut u8 = 0xb8000 as *mut u8;
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
+use screen::cursor::move_cursor;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -28,14 +30,17 @@ pub enum Color {
 
 pub fn putc(char: u8, color: Color) {
     unsafe {
-        *VGA.offset(COUNTER as isize * 2) = char;
+        *VGA.offset(COUNTER as isize * 2 + 0) = char;
         *VGA.offset(COUNTER as isize * 2 + 1) = color as u8;
 
         COUNTER += 1;
     }
+
+    move_cursor(1);
 }
 
 pub fn new_line() {
+    /*
     // Calcula la posición actual en el buffer VGA
     unsafe {
         let current_position = (COUNTER as usize) % (BUFFER_WIDTH * BUFFER_HEIGHT);
@@ -50,7 +55,7 @@ pub fn new_line() {
 
         // Actualiza el contador para la siguiente línea
         COUNTER = next_row_position as u8;
-    }
+    }*/
 }
 
 pub fn puts(text: &str, color: Color) {
@@ -58,5 +63,5 @@ pub fn puts(text: &str, color: Color) {
         putc(byte, color);
     }
 
-    new_line();
+    //new_line();
 }

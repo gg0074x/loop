@@ -1,14 +1,16 @@
 use crate::screen::put::COUNTER;
-use core::arch::asm;
+use crate::screen::cursor::move_cursor;
 
 const VGA: *mut u8 = 0xb8000 as *mut u8;
 
 pub fn clear_one_char() {
     unsafe {
-        *VGA.offset((COUNTER * 2).into()) = 0;
-        *VGA.offset((COUNTER * 2 + 1).into()) = 0;
         if COUNTER > 0 {
-            COUNTER -= 1
+            *VGA.offset((COUNTER * 2 - 2) as isize) = 0;
+            *VGA.offset((COUNTER * 2 - 1) as isize) = 0;
+
+            COUNTER -= 1;
+            move_cursor(-1);
         }
     }
 }
@@ -16,7 +18,7 @@ pub fn clear_one_char() {
 pub fn clear_screen() {
     unsafe {
         for i in COUNTER..0 {
-            *VGA.offset(COUNTER as isize) = 0;
+            *VGA.offset(i as isize) = 0;
         }
         COUNTER = 0;
     }
