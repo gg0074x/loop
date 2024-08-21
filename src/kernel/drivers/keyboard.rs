@@ -1,7 +1,10 @@
 use crate::asm::inb::inb;
 // use crate::asm::outb::outb;
-use crate::screen::clear::clear_one_char;
-use crate::screen::put::{new_line, putc, Color};
+use crate::screen::clear::removeentryat;
+use crate::screen::port::port_byte_in;
+use crate::screen::put::{putc, Color};
+
+static mut SHIFT: bool = false;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,7 +26,7 @@ pub enum KeyboardEvents {
 
 pub fn get_char_from_scan_code(scan_code: u8) -> (u8, KeyboardState) {
     let result = match scan_code {
-        0x1E => (b'a', KeyboardState::Pressed), // a is pressed
+        0x1E => (b'a', KeyboardState::Pressed),  // a is pressed
         0x9E => (b'a', KeyboardState::Released), // a is released
 
         0x30 => (b'b', KeyboardState::Pressed), // b is pressed
@@ -134,8 +137,9 @@ pub fn get_char_from_scan_code(scan_code: u8) -> (u8, KeyboardState) {
         0x39 => (b' ', KeyboardState::Pressed),
         0xB9 => (b' ', KeyboardState::Released),
 
-        0x0E => (8, KeyboardState::Event), // Backspace
+        0x0E => (8, KeyboardState::Event),  // Backspace
         0x1C => (13, KeyboardState::Event), // Enter
+        0x2A => (0, KeyboardState::Event), // Bloq mayus
 
         _ => (b'?', KeyboardState::Nothing),
     };
@@ -143,18 +147,42 @@ pub fn get_char_from_scan_code(scan_code: u8) -> (u8, KeyboardState) {
     result
 }
 
-pub fn get_keyboard_pulse() -> (u8, KeyboardState) {
-    while (inb(0x64) & 0x01) == 0 {}
+pub fn get_keyboard_pulse() {
+    while (port_byte_in(0x64 as *mut u16) & 0x01) == 0 {}
 
-    let scan_code = inb(0x60);
+    let scan_code = port_byte_in(0x60 as *mut u16);
 
     let result = get_char_from_scan_code(scan_code);
 
-    match result {
-        (13, KeyboardState::Event) => {},
-        (8, KeyboardState::Event) => clear_one_char(),
-        _ => {}
+    match (result.1, result.0) {
+        (KeyboardState::Pressed, _) => {
+            unsafe {
+                match SHIFT{
+                    true => {
+                        putc(result.0 - 32, Color::LightCyan);
+                        return;
+                    },
+                    false => {
+                    }
+                }
+            }
+            putc(result.0, Color::LightCyan);
+            return;
+        }
+        (KeyboardState::Event, 13) => {
+            //new_line();
+            return;
+        }
+        (KeyboardState::Event, 8) => {
+            removeentryat(0, Color::White as u8, 0, 0);
+            return;
+        }
+        (KeyboardState::Event, 0) => {
+            unsafe {
+                SHIFT = !SHIFT;
+            }
+            return;
+        }
+        _ => { return }
     }
-
-    result
 }

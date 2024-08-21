@@ -1,10 +1,10 @@
 BUILD_DIR?=build
 ASM?=nasm
 ASMFLAGS?=-f elf32
-ELF_LD?=i386-elf-ld
+ELF_LD?=i686-elf-ld
 RUST?=rustc
 RUST_FLAGS?=-O --target i686-unknown-linux-gnu --crate-type lib --emit=obj -C link-args=-no-pie -C relocation-model=static
-RUST_FLAGS_ASM?=-O --target i686-unknown-linux-gnu --crate-type lib --emit=asm -C link-args=-no-pie -C relocation-model=static -Zasm_comments
+RUST_FLAGS_ASM?=-O --target i686-unknown-linux-gnu --crate-type lib --emit=asm -C link-args=-no-pie -C relocation-model=static -C debuginfo=2
 
 
 SOURCES_RUST=$(wildcard *.rs)

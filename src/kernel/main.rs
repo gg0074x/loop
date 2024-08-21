@@ -19,19 +19,18 @@ use drivers::keyboard::{get_keyboard_pulse, KeyboardState};
 // use modes::panic_mode::enter_panic_mode;
 use screen::{
     // clear::clear_screen,
-    // cursor::load_cursor,
+    cursor::enable_cursor,
     put::{putc, puts, Color},
 };
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    puts("Welcome to loop kernel", Color::LightCyan);
+    enable_cursor(0, 25);
+    //putc('w' as u8, Color::White);
     loop {
-        let state = get_keyboard_pulse();
-        if state.1 == KeyboardState::Pressed {
-            putc(state.0, Color::LightCyan);
-        }
+        get_keyboard_pulse();
     }
+
 }
 
 #[panic_handler]
